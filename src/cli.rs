@@ -1,6 +1,6 @@
 use clap::Parser;
 
-#[derive(Parser)]
+#[derive(Parser, Clone)]
 #[command(name = "diskgrep", version, about = "DISKGREP UTILITY (V0.1)")]
 pub struct ArgV {
     #[arg(short = 'l', long = "list")]
@@ -15,7 +15,7 @@ pub struct ArgV {
     #[arg(short = 'p', long = "partition")]
     pub partition_name: Option<String>,
 
-    #[arg(short = 'r', long = "read-only")]
+    #[arg(long = "read-only")]
     pub ro: bool,
 
     #[arg(short = 'd', long = "default")]
@@ -24,12 +24,24 @@ pub struct ArgV {
     #[arg(short = 'e', long = "ro-error")]
     pub remount_ro: bool,
 
-    #[arg(short = 'c', long = "containing-dir")]
+    #[arg(long = "mountpoint")]
     pub directory: Option<String>,
 
-    #[arg(short = 'i', long = "identifier")]
-    pub identifier: Option<String>,
-
     #[arg(short = 'f', long = "find")]
-    pub find: bool,
+    pub find: Option<String>,
+
+    #[arg(short = 'i', long = "inside")]
+    pub inside: Option<String>,
+
+    #[arg(long = "fstype")]
+    pub fstype: Option<String>,
+
+    #[arg(short = 'n', long = "not")]
+    pub not: bool,
+
+    #[arg(short = 'a', long = "any")]
+    pub any: bool,
+
+    #[arg(long = "debug")]
+    pub debug: bool,
 }

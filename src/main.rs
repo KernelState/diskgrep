@@ -2,20 +2,27 @@ extern crate diskgrep;
 mod cli;
 
 use clap::Parser;
+use diskgrep::debug::Debug;
 use diskgrep::disk::model::Partition;
 use diskgrep::disk::mount;
 use diskgrep::disk::scanner;
+use diskgrep::identification::identification::find;
+use diskgrep::identification::model::{Id, IdItem};
 use diskgrep::utils::error::Error;
-use diskgrep::utils::find;
+use diskgrep::utils::find::{find_part_in_root, DiskTypes};
 use libc::getuid;
+
+fn log(str_: String, debug: &Debug) {
+    if debug.On {
+        println!("{}", str_.as_str());
+    }
+}
 
 fn main() -> Result<(), Error> {
     let args = cli::ArgV::parse();
-    println!(
-        "The arguments to access a certain disk will require using a non-/dev/ notation like -p sda2 instead of -p /dev/sda2"
-    );
+    let mut debug = Debug::new(false);
     if args.listdisks {
-        let disks = match scanner::load_list() {
+        let mut disks = match scanner::load_list() {
             Err(e) => return Err(e.excec()),
             Ok(v) => v,
         };
@@ -48,14 +55,14 @@ fn main() -> Result<(), Error> {
                 println!("no partition name was provided");
                 return Ok(());
             }
-            Some(ref v) => match find::find_part_in_root(v.clone()) {
+            Some(ref v) => match find_part_in_root(v.clone()) {
                 Err(e) => return Err(e.excec()),
                 Ok(v_) => match v_ {
-                    find::DiskTypes::Disk(_) => {
+                    DiskTypes::Disk(_) => {
                         println!("\"/dev/{}\" is a disk not a partition", v.clone());
                         return Ok(());
                     }
-                    find::DiskTypes::Partition(v) => match v.mounted {
+                    DiskTypes::Partition(v) => match v.mounted {
                         true => {
                             println!("disk already mounted");
                             return Ok(());
@@ -63,7 +70,7 @@ fn main() -> Result<(), Error> {
                         false => {
                             let dname = match args.directory {
                                 None => format!("/mnt/{}", v.name),
-                                Some(v) => v,
+                                Some(ref v) => v.clone(),
                             };
                             let mut part = Partition { ..v };
                             match mount::mount(
@@ -94,17 +101,17 @@ fn main() -> Result<(), Error> {
                 println!("A partition name has to be provided");
                 return Ok(());
             }
-            Some(z) => match find::find_part_in_root(z.clone()) {
-                Err(e) => {
+            Some(ref z) => match find_part_in_root(z.clone()) {
+                Err(_) => {
                     println!("partition {} does not exist", z.clone());
                     return Ok(());
                 }
                 Ok(b) => match b {
-                    find::DiskTypes::Disk(_) => {
+                    DiskTypes::Disk(_) => {
                         println!("this only works on partitions this is a disk");
                         return Ok(());
                     }
-                    find::DiskTypes::Partition(a) => a,
+                    DiskTypes::Partition(a) => a,
                 },
             },
         };
@@ -115,6 +122,23 @@ fn main() -> Result<(), Error> {
             }
             Ok(_) => println!("disk {} unmounted succefully", partition.name),
         };
+    }
+    if args.debug {
+        debug.on();
+    }
+    if let Option::Some(ref v) = args.find {
+        log(format!("finding"), &debug);
+        let mut id = Id::new(
+            IdItem::new(vec![v.clone()], args.fstype, args.inside),
+            args.not,
+            false,
+            !args.any,
+        );
+        find(&mut id, &debug.On);
+
+        for i in id.candidates {
+            println!("[CANDIDATE] /dev/{}", i.name);
+        }
     }
     Ok(())
 }

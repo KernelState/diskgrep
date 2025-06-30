@@ -60,29 +60,6 @@ impl Error {
         }
     }
     pub fn excec(&self) -> Self {
-        // The :? will be removed in Non-InDev versions sense all what it does is add the file and
-        // line which do not matter to the user
-        println!("{:?}", self);
-        match self.state {
-            ErrorState::Panic => {
-                panic!("a panic accoured due to the error above");
-            }
-            ErrorState::Conitnue => {
-                println!("The program is going to continue excution normally");
-            }
-            ErrorState::Quit => {
-                println!("The program is quitting gracefully");
-                exit(0);
-            }
-            ErrorState::Skip => {
-                println!("The error is being skipped and it can be ignored");
-            }
-            ErrorState::Return => {
-                println!(
-                    "returning from function due to the previous error (this might affect the resulitng outputs)"
-                );
-            }
-        }
         return (*self).clone();
     }
 }

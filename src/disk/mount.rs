@@ -10,7 +10,7 @@ pub fn mount(
     rw: bool,
     remount_ro: bool,
     defaults: bool,
-    dir_name: String,
+    dir_name_: String,
 ) -> Result<(), Error> {
     let mut cmd_text: String = String::from("mount ");
     if defaults {
@@ -27,7 +27,14 @@ pub fn mount(
             cmd_text.push_str("errors=remount-ro");
         }
     }
-    cmd_text.push_str(format!(" -t {}", partition.fstype).as_str());
+    if partition.fstype != String::from("Unknown") {
+        cmd_text.push_str(format!(" -t {}", partition.fstype).as_str());
+    }
+
+    let dir_name = match dir_name_.clone().is_empty() {
+        true => format!("/mnt/{}", partition.name),
+        false => dir_name_.clone(),
+    };
 
     let pth = Path::new(dir_name.as_str());
 
@@ -40,6 +47,7 @@ pub fn mount(
             ));
         }
     } else {
+        println!("{dir_name}");
         match fs::create_dir(&dir_name) {
             Err(e) => {
                 return Err(Error::new(
@@ -61,7 +69,7 @@ pub fn mount(
         Ok(_) => {}
     };
     partition.mounted = true;
-    partition.mountpoint = Option::Some(format!("/mnt/{dir_name}"));
+    partition.mountpoint = Option::Some(format!("{dir_name}"));
 
     Ok(())
 }
@@ -83,7 +91,21 @@ pub fn umount(partition: &mut Partition) -> Result<(), Error> {
         Err(e) => return Err(e.excec()),
         Ok(_) => {}
     }
-    let pth = Path::new(format!("{}", partition.mountpoint.clone().unwrap()).as_str());
+    if let Option::Some(ref v) = partition.mountpoint {
+        if v.as_str() != "/mnt" {
+            let pth = Path::new(v.as_str());
+            match fs::remove_dir(pth) {
+                Err(e) => {
+                    return Err(Error::new(
+                        ErrorKind::Other,
+                        ErrorState::Return,
+                        format!("Got an error while removing the mount directory \"{v}\"{e}"),
+                    ))
+                }
+                Ok(_) => {}
+            };
+        }
+    }
     partition.mountpoint = Option::None;
     partition.mounted = false;
 

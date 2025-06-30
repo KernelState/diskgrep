@@ -1,6 +1,6 @@
 use crate::disk::units::Size;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PermList {
     pub read: bool,
     pub write: bool,
@@ -19,7 +19,7 @@ impl PermList {
 
 pub trait Partitionable {}
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Partition {
     pub name: String,
     pub size: Size,
@@ -46,7 +46,7 @@ impl Partition {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Disk {
     pub name: String,
     pub serial: String,
