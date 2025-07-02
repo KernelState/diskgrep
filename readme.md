@@ -22,3 +22,4 @@ this requires no genius just a `--find` (no short flag for it) and a directory n
 **NOTE**: the find feature does not work with the root that your using (your os root) yet
 **NOTE**: the find feature only looks in the root of the disk and not through the entire disk
 **NOTE**: the find feature can accept from 0 to 3 inputs and doesnt require inputting all of them
+**NOTE**: You can now use tags which are saved versions of the `--find` command saved to `~/.diskgrep` by using `-t` to save it and `--tag-file` to look for it in the default directory and `--ctag-file` if you have it in a non-default directory, to save it in a non-default directory you have to use `--tag-dir`

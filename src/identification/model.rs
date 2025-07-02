@@ -1,6 +1,7 @@
 use crate::disk::model::Partition;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct IdItem {
     pub has_directory: Vec<String>,
     pub has_format: Option<String>,

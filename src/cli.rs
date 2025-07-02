@@ -44,4 +44,19 @@ pub struct ArgV {
 
     #[arg(long = "debug")]
     pub debug: bool,
+
+    #[arg(short = 't', long = "tag")]
+    pub tag: Option<String>,
+
+    #[arg(long = "read-tag")]
+    pub read_tag: Option<String>,
+
+    #[arg(long = "tag-dir")]
+    pub tag_dir: Option<String>,
+
+    #[arg(long = "tag-file")]
+    pub tag_file: Option<String>,
+
+    #[arg(long = "ctag-file")]
+    pub ctag_file: Option<String>,
 }

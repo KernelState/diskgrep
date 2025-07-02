@@ -8,9 +8,13 @@ use diskgrep::disk::mount;
 use diskgrep::disk::scanner;
 use diskgrep::identification::identification::find;
 use diskgrep::identification::model::{Id, IdItem};
+use diskgrep::identification::tag;
 use diskgrep::utils::error::Error;
 use diskgrep::utils::find::{find_part_in_root, DiskTypes};
 use libc::getuid;
+use std::fs;
+use std::io::Write;
+use std::path::Path;
 
 fn log(str_: String, debug: &Debug) {
     if debug.On {
@@ -128,16 +132,63 @@ fn main() -> Result<(), Error> {
     }
     if let Option::Some(ref v) = args.find {
         log(format!("finding"), &debug);
+        match (args.tag_file, args.ctag_file) {
+            (None, None) => {
+                let mut id = Id::new(
+                    IdItem::new(vec![v.clone()], args.fstype.clone(), args.inside.clone()),
+                    args.not,
+                    !args.any,
+                    !args.any,
+                );
+                find(&mut id, &debug.On);
+
+                for i in id.candidates {
+                    println!("[CANDIDATE] /dev/{}", i.name);
+                }
+            }
+            (Some(ref s), None) => {
+                let filepath = format!("~/.diskgrep/{}.json", s.to_string());
+                if !Path::new(filepath.as_str()).exists() {
+                    println!("file does not exist in ~/.diskgrep");
+                    return Ok(());
+                }
+                let mut id = tag::read(filepath)?;
+                find(&mut id, &debug.On);
+                for c in id.candidates {
+                    println!("[CANDIDATE] /dev/{}", c.name);
+                }
+            }
+            (None, Some(ref s)) => {
+                if !Path::new(s.as_str()).exists() {
+                    println!("file does not exist");
+                    return Ok(());
+                }
+                let mut id = tag::read(s.to_string())?;
+                find(&mut id, &debug.On);
+                for c in id.candidates {
+                    println!("[CANDIDATE] /dev/{}", c.name);
+                }
+            }
+            (Some(_), Some(_1)) => {
+                println!("cannot use both custom tag path and default tag path");
+                return Ok(());
+            }
+        }
+    }
+    if let Option::Some(ref v) = args.tag {
         let mut id = Id::new(
-            IdItem::new(vec![v.clone()], args.fstype, args.inside),
+            IdItem::new(Vec::new(), args.fstype, args.inside.clone()),
             args.not,
-            false,
+            !args.any,
             !args.any,
         );
-        find(&mut id, &debug.On);
-
-        for i in id.candidates {
-            println!("[CANDIDATE] /dev/{}", i.name);
+        match args.find {
+            None => {}
+            Some(vf) => id.id.has_directory = vec![vf],
+        }
+        match tag::save(v.to_string(), args.tag_dir, id) {
+            Err(e) => println!("got an error saving the tag\n{e}"),
+            Ok(_) => println!("tag saved succefully"),
         }
     }
     Ok(())
