@@ -3,7 +3,7 @@ use std::path::Path;
 
 use crate::disk::model::Partition;
 use crate::utils::callers::Cmd;
-use crate::utils::error::{Error, ErrorKind, ErrorState};
+use crate::utils::error::{Error, ErrorKind};
 
 pub fn mount(
     partition: &mut Partition,
@@ -42,7 +42,6 @@ pub fn mount(
         if Vec::from_iter(pth.read_dir().iter()).len() > 1 {
             return Err(Error::new(
                 ErrorKind::InvalidInput,
-                ErrorState::Return,
                 String::from("directory is not empty"),
             ));
         }
@@ -52,7 +51,6 @@ pub fn mount(
             Err(e) => {
                 return Err(Error::new(
                     ErrorKind::Other,
-                    ErrorState::Return,
                     format!("Cannot create directory {e}"),
                 ));
             }
@@ -78,7 +76,6 @@ pub fn umount(partition: &mut Partition) -> Result<(), Error> {
     if !partition.mounted {
         return Err(Error::new(
             ErrorKind::InvalidInput,
-            ErrorState::Return,
             format!(
                 "partition \"/dev/{}\" cannot be unmounted if its not mounted in the first place",
                 partition.name
@@ -98,7 +95,6 @@ pub fn umount(partition: &mut Partition) -> Result<(), Error> {
                 Err(e) => {
                     return Err(Error::new(
                         ErrorKind::Other,
-                        ErrorState::Return,
                         format!("Got an error while removing the mount directory \"{v}\"{e}"),
                     ))
                 }

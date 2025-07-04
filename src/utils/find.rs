@@ -1,6 +1,6 @@
 use crate::disk::model::{Disk, Partition};
 use crate::disk::scanner::load_list;
-use crate::utils::error::{Error, ErrorKind, ErrorState};
+use crate::utils::error::{Error, ErrorKind};
 
 pub enum DiskTypes {
     Disk(Disk),
@@ -24,7 +24,6 @@ pub fn find_part_in_root(name: String) -> Result<DiskTypes, Error> {
     }
     Err(Error::new(
         ErrorKind::NotFound,
-        ErrorState::Return,
         format!("\"{name}\" not found"),
     ))
 }

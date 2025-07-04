@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use crate::utils::error::{Error, ErrorKind, ErrorState};
+use crate::utils::error::{Error, ErrorKind};
 
 #[derive(Debug, Clone, Deserialize)]
 pub enum Size {
@@ -23,7 +23,6 @@ impl Size {
             Err(e) => {
                 return Err(Error::new(
                     ErrorKind::ParsingError,
-                    ErrorState::Return,
                     format!(
                         "input \"{}\" into size was not a number, {e}",
                         String::from_iter(Vec::from_iter(v.chars()).pop().iter()).as_str()
@@ -42,7 +41,6 @@ impl Size {
             "B" => Ok(Self::Byte(nums as u64)),
             other => Err(Error::new(
                 ErrorKind::UnknownType,
-                ErrorState::Return,
                 format!("Unknown unit {other}"),
             )),
         }

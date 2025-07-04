@@ -17,7 +17,7 @@ fn find_windows_disk() {
         true,
     );
 
-    find(&mut windows_id);
+    find(&mut windows_id, true);
     assert_eq!(windows_id.candidates.len(), 0 as usize);
 }
 
@@ -38,7 +38,7 @@ fn find_not_projects() {
         true,
         false,
     );
-    find(&mut not_proj);
+    find(&mut not_proj, true);
 
     let mut disk_ammount: usize = 0;
 

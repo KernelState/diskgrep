@@ -12,6 +12,7 @@ use diskgrep::identification::tag;
 use diskgrep::utils::error::Error;
 use diskgrep::utils::find::{find_part_in_root, DiskTypes};
 use libc::getuid;
+use std::env::home_dir;
 use std::fs;
 use std::io::Write;
 use std::path::Path;
@@ -48,6 +49,7 @@ fn main() -> Result<(), Error> {
                 );
             }
         }
+        return Ok(());
     }
     if args.mount {
         if unsafe { getuid() } != 0 {
@@ -94,6 +96,7 @@ fn main() -> Result<(), Error> {
                 },
             },
         }
+        return Ok(());
     }
     if args.umount {
         if unsafe { getuid() } != 0 {
@@ -126,14 +129,32 @@ fn main() -> Result<(), Error> {
             }
             Ok(_) => println!("disk {} unmounted succefully", partition.name),
         };
+        return Ok(());
     }
     if args.debug {
         debug.on();
+    }
+    if args.list_tags {
+        for i in fs::read_dir(format!(
+            "{}/.diskgrep",
+            home_dir().expect("Cannot get home dir").display()
+        ))
+        .unwrap()
+        .map(|e| {
+            e.unwrap()
+                .file_name()
+                .to_str()
+                .expect("cannot stringfy file name from OSStr to String (OS Error)")
+                .to_string()
+        }) {
+            println!("[TAG] ~/.diskgrep/{i}");
+        }
     }
     if let Option::Some(ref v) = args.find {
         log(format!("finding"), &debug);
         match (args.tag_file, args.ctag_file) {
             (None, None) => {
+                println!("finding in normal mode");
                 let mut id = Id::new(
                     IdItem::new(vec![v.clone()], args.fstype.clone(), args.inside.clone()),
                     args.not,
@@ -147,7 +168,8 @@ fn main() -> Result<(), Error> {
                 }
             }
             (Some(ref s), None) => {
-                let filepath = format!("~/.diskgrep/{}.json", s.to_string());
+                println!("finding using tag in ~/.diskgrep");
+                let filepath = format!("$HOME/.diskgrep/{}.json", s.to_string());
                 if !Path::new(filepath.as_str()).exists() {
                     println!("file does not exist in ~/.diskgrep");
                     return Ok(());
@@ -159,6 +181,7 @@ fn main() -> Result<(), Error> {
                 }
             }
             (None, Some(ref s)) => {
+                println!("finding using absolute path");
                 if !Path::new(s.as_str()).exists() {
                     println!("file does not exist");
                     return Ok(());
@@ -173,6 +196,9 @@ fn main() -> Result<(), Error> {
                 println!("cannot use both custom tag path and default tag path");
                 return Ok(());
             }
+        }
+        if let Option::None = args.tag {
+            return Ok(());
         }
     }
     if let Option::Some(ref v) = args.tag {

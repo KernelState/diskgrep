@@ -1,4 +1,4 @@
-use crate::utils::error::{Error, ErrorKind, ErrorState};
+use crate::utils::error::{Error, ErrorKind};
 use std::process::Command;
 
 pub struct Cmd {
@@ -17,7 +17,6 @@ impl Cmd {
         if self.ran {
             return Err(Error::new(
                 ErrorKind::AlreadyRan,
-                ErrorState::Panic,
                 String::from("cannot run a command twice"),
             ));
         }
@@ -29,7 +28,6 @@ impl Cmd {
             Err(_) => {
                 return Err(Error::new(
                     ErrorKind::CommandExitedWithError,
-                    ErrorState::Return,
                     format!("the command generated an unhandled error"),
                 ));
             }
@@ -39,7 +37,6 @@ impl Cmd {
             Err(_) => {
                 return Err(Error::new(
                     ErrorKind::EncodingError,
-                    ErrorState::Panic,
                     String::from("Cannot encode stderr"),
                 ));
             }
@@ -48,7 +45,6 @@ impl Cmd {
         if !stderr.is_empty() {
             return Err(Error::new(
                 ErrorKind::CommandExitedWithError,
-                ErrorState::Return,
                 format!("the command generated an error: {stderr}"),
             ));
         }
@@ -56,7 +52,6 @@ impl Cmd {
             Err(_) => {
                 return Err(Error::new(
                     ErrorKind::EncodingError,
-                    ErrorState::Panic,
                     String::from("Cannot encode stderr"),
                 ));
             }

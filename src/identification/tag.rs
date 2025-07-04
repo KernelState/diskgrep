@@ -1,7 +1,8 @@
 use crate::identification::model::{Id, IdItem};
-use crate::utils::error::{Error, ErrorKind, ErrorState};
+use crate::utils::error::{Error, ErrorKind};
 use serde::{Deserialize, Serialize};
 use serde_json;
+use std::env::home_dir;
 use std::fs;
 use std::io::Write;
 use std::path::Path;
@@ -38,10 +39,14 @@ impl Tag {
 }
 
 pub fn save(name: String, dir_path: Option<String>, id: Id) -> Result<(), Error> {
-    let mut dir: String = String::from("~/.diskgrep");
+    let mut dir: String = format!(
+        "{}/.diskgrep",
+        home_dir().expect("No home dir found").display()
+    );
     if let Option::Some(v) = dir_path {
         dir = v;
     }
+    println!("dir is {dir}");
     let pth = Path::new(dir.as_str());
     if !pth.exists() {
         fs::create_dir_all(&pth);
@@ -51,35 +56,21 @@ pub fn save(name: String, dir_path: Option<String>, id: Id) -> Result<(), Error>
     if file_path.exists() {
         return Err(Error::new(
             ErrorKind::AlreadyExists,
-            ErrorState::Return,
             format!("file {dir}/{name}.json already exists"),
         ));
     }
     let mut file = match fs::File::create(format!("{dir}/{name}.json").as_str()) {
-        Err(e) => {
-            return Err(Error::new(
-                ErrorKind::Other,
-                ErrorState::Return,
-                format!("got an error {e}"),
-            ))
-        }
+        Err(e) => return Err(Error::new(ErrorKind::Other, format!("got an error {e}"))),
         Ok(v) => v,
     };
     let json_output = match serde_json::to_string(&Tag::from_id(name, &id)) {
-        Err(e) => {
-            return Err(Error::new(
-                ErrorKind::Other,
-                ErrorState::Return,
-                format!("got an error {e}"),
-            ))
-        }
+        Err(e) => return Err(Error::new(ErrorKind::Other, format!("got an error {e}"))),
         Ok(v) => v,
     };
     match file.write_all(Vec::from_iter(json_output.bytes()).as_slice()) {
         Err(e) => {
             return Err(Error::new(
                 ErrorKind::Other,
-                ErrorState::Return,
                 format!("failed to write to file {e}"),
             ))
         }
@@ -92,26 +83,15 @@ pub fn read(file_path: String) -> Result<Id, Error> {
     if !Path::new(file_path.as_str()).exists() {
         return Err(Error::new(
             ErrorKind::NotFound,
-            ErrorState::Return,
             format!("file {file_path} is not found"),
         ));
     }
     let file = match fs::read_to_string(file_path.as_str()) {
-        Err(e) => {
-            return Err(Error::new(
-                ErrorKind::Other,
-                ErrorState::Return,
-                format!("e"),
-            ))
-        }
+        Err(e) => return Err(Error::new(ErrorKind::Other, format!("{e}"))),
         Ok(v) => v,
     };
     match serde_json::from_str::<Tag>(file.as_str()) {
-        Err(e) => Err(Error::new(
-            ErrorKind::Other,
-            ErrorState::Return,
-            format!("error {e}"),
-        )),
+        Err(e) => Err(Error::new(ErrorKind::Other, format!("error {e}"))),
         Ok(v) => Ok(v.to_id()),
     }
 }

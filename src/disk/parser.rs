@@ -1,4 +1,4 @@
-use crate::utils::error::{Error, ErrorKind, ErrorState};
+use crate::utils::error::{Error, ErrorKind};
 use serde::Deserialize;
 use serde_json;
 
@@ -38,7 +38,6 @@ pub fn parse_root(root_json: &str) -> Result<Vec<LsblkElement>, Error> {
         Err(e) => {
             return Err(Error::new(
                 ErrorKind::ParsingError,
-                ErrorState::Panic,
                 format!("unable to parse json output due to : {e}"),
             ));
         }
@@ -58,7 +57,6 @@ pub fn parse_root(root_json: &str) -> Result<Vec<LsblkElement>, Error> {
                             Err(e) => {
                                 return Err(Error::new(
                                     ErrorKind::ParsingError,
-                                    ErrorState::Panic,
                                     format!("cannot parse json due to {e}"),
                                 ));
                             }
@@ -68,7 +66,6 @@ pub fn parse_root(root_json: &str) -> Result<Vec<LsblkElement>, Error> {
                 _ => {
                     return Err(Error::new(
                         ErrorKind::ParsingError,
-                        ErrorState::Return,
                         format!("the serde_json parser cannot parse children of blockdevices list"),
                     ));
                 }
@@ -78,7 +75,6 @@ pub fn parse_root(root_json: &str) -> Result<Vec<LsblkElement>, Error> {
         other => {
             return Err(Error::new(
                 ErrorKind::UnknownType,
-                ErrorState::Return,
                 format!("unknown json type {other}"),
             ));
         }

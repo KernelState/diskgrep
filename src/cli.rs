@@ -59,4 +59,7 @@ pub struct ArgV {
 
     #[arg(long = "ctag-file")]
     pub ctag_file: Option<String>,
+
+    #[arg(long = "list-tags")]
+    pub list_tags: bool,
 }
