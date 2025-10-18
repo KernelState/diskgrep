@@ -2,7 +2,7 @@
 So getting pissed off by atrocious amounts of disks on your linux pc tagged with /dev/sda{num}, were on the same board
 
 # Installation
-currently there is no official installer for this app you just compile it with cargo and run it from `./target/debug/diskgrep`
+You copy the posix excutable into `/usr/bin` or `$HOME/.local/bin`
 
 # Usage
 The app is really simple you can do 4 things with it
